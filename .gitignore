@@ -13,6 +13,8 @@
 
 # Executables
 *.exe
+exercise-4
+rubiks
 
 # DUB
 .dub
