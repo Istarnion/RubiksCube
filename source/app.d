@@ -74,8 +74,6 @@ void main()
 
     glClearColor(0.18f, 0.18f, 0.18f, 1);
 
-    Mat4f model = Mat4f.identity();
-
     Camera cam = Camera(60, width, height, 0.1f, 100.0f);
     cam.view = Mat4f.look_at(
             Vec3f(0, 0, 20),
@@ -84,15 +82,25 @@ void main()
             );
     cam.update();
 
-    RubiksCube rCube = RubiksCube(cam.calcMVP(model));
+    RubiksCube rCube = RubiksCube(cam.viewProjection);
 
-    bool up, down, right, left;
-    float vel = 0.05f;
+    float vel = 7.0f;
+    Vec2f mouseDrag;
+    bool dragging = false;
+    bool spaceDown = false;
 
+    auto now = SDL_GetPerformanceCounter();
+    auto last = now;
+    float deltaTime = 0;
     bool running = true;
     SDL_Event event;
     while(running)
     {
+        dragging = false;
+        last = now;
+        now = SDL_GetPerformanceCounter();
+        deltaTime = cast(float)(now - last) / SDL_GetPerformanceFrequency();
+
         while(SDL_PollEvent(&event))
         {
             if(event.type == SDL_QUIT)
@@ -107,76 +115,53 @@ void main()
                     width = event.window.data1;
                     height = event.window.data2;
                     cam.resize(width, height);
-                    rCube.update(cam.calcMVP(model));
+                    rCube.update(cam.viewProjection);
                 }
             }
             else if(event.type == SDL_KEYDOWN)
             {
-                switch(event.key.keysym.sym)
+                if(event.key.keysym.sym == SDLK_SPACE)
                 {
-                    case SDLK_UP:
-                        up = true;
-                        break;
-                    case SDLK_RIGHT:
-                        right = true;
-                        break;
-                    case SDLK_LEFT:
-                        left = true;
-                        break;
-                    case SDLK_DOWN:
-                        down = true;
-                        break;
-                    default:
-                        break;
+                    spaceDown = true;
                 }
             }
             else if (event.type == SDL_KEYUP)
             {
-                switch(event.key.keysym.sym)
+                if(event.key.keysym.sym == SDLK_SPACE)
                 {
-                    case SDLK_UP:
-                        up = false;
-                        break;
-                    case SDLK_RIGHT:
-                        right = false;
-                        break;
-                    case SDLK_LEFT:
-                        left = false;
-                        break;
-                    case SDLK_DOWN:
-                        down = false;
-                        break;
-                    default:
-                        break;
+                    spaceDown = false;
+                }
+            }
+            else if(event.type == SDL_MOUSEMOTION)
+            {
+                if(event.motion.state & SDL_BUTTON_LMASK)
+                {
+                    dragging = true;
+                    mouseDrag.x = event.motion.xrel;
+                    mouseDrag.y = event.motion.yrel;
+                }
+            }
+            else if(event.type == SDL_MOUSEBUTTONDOWN)
+            {
+                if(event.button.button == SDL_BUTTON_RIGHT)
+                {
+                    rCube.pickCube(Vec3f(0, 0, 20), cam.mouseToRay(event.button.x, event.button.y));
                 }
             }
         }
         if(running)
         {
-            if(up || down || right || left)
+            if(dragging && mouseDrag.isFinite() && mouseDrag.x != 0 && mouseDrag.y != 0)
             {
                 Mat4f transformation = Mat4f.identity();
 
-                if(up)
-                {
-                    transformation.rotatex(-vel);
-                }
-                if(down)
-                {
-                    transformation.rotatex(vel);
-                }
-                if(right)
-                {
-                    transformation.rotatey(vel);
-                }
-                if(left)
-                {
-                    transformation.rotatey(-vel);
-                }
+                Vec3f delta = Vec3f(-mouseDrag.y, -mouseDrag.x, 0);
+                delta.normalize();
+                transformation.rotate(vel*deltaTime, delta);
 
-                model = transformation * model;
+                rCube.model = transformation * rCube.model;
 
-                rCube.update(cam.calcMVP(model));
+                rCube.update(cam.viewProjection);
             }
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
