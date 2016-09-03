@@ -10,6 +10,8 @@ alias Vector!(float, 3) Vec3f;
 alias Vector!(float, 4) Vec4f;
 alias Matrix!(float, 4, 4) Mat4f;
 
+import shader;
+
 struct Camera
 {
     Mat4f projection;
@@ -26,6 +28,8 @@ struct Camera
     float fov;
     float near;
     float far;
+
+    Vec3f prevRay;
 
     this(float fov, int width, int height, float near, float far)
     {
@@ -87,12 +91,49 @@ struct Camera
         ray = invView * ray;
         ray.normalize();
 
+        prevRay = ray.xyz;
         return ray.xyz;
     }
 
     Mat4f calcMVP(Mat4f model)
     {
         return viewProjection * model;
+    }
+
+    void draw(Shader s)
+    {
+        auto p = Vec3f(0, 0, 20) + prevRay*10;
+        GLfloat[24] verts = [
+            p.x-0.5, p.y, p.z, 1, 0, 0,
+            p.x+0.5, p.y, p.z, 1, 0, 0,
+            p.x, p.y-0.5, p.z, 1, 0, 0,
+            p.x, p.y+0.5, p.z, 1, 0, 0,
+        ];
+
+        GLuint VAO;
+        glGenVertexArrays(1, &VAO);
+        glBindVertexArray(VAO);
+
+        GLuint VBO;
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+        glBufferData(GL_ARRAY_BUFFER, verts.sizeof, verts.ptr, GL_STREAM_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*6), cast(GLvoid*)0);
+
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*6), cast(GLvoid*)(GLfloat.sizeof*3));
+
+        s.bind();
+        s.setMVP(viewProjection);
+
+        glDrawArrays(GL_LINES, 0, 4);
+
+        glBindVertexArray(0);
+
+        s.unbind();
     }
 }
 

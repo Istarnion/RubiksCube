@@ -85,7 +85,7 @@ struct RubiksCube
             writeln("Direction: "~dir.as_string());
 
             float dist;
-            float halfSize = spacing+0.5f;
+            float halfSize = spacing+1;
             int index = -1;
             // First, check if we hit the cluster at all
             if(rayVsCube(origin, dir, Vec3f(-halfSize, -halfSize, -halfSize), Vec3f(halfSize, halfSize, halfSize), model, dist))
@@ -96,9 +96,8 @@ struct RubiksCube
                 float shortest = 1000000.0f;
                 for(int i=0; i<cubes.length; ++i)
                 {
-                    /*TEMP*/ cubes[i].transform.scale(1, 1, 1);
                     m = model * cubes[i].transform;
-                    if(rayVsCube(origin, dir, Vec3f(-0.5f, -0.5f, -0.5f), Vec3f(0.5f, 0.5f, 0.5f), m, dist))
+                    if(rayVsCube(origin, dir, Vec3f(-1, -1, -1), Vec3f(1, 1, 1), m, dist))
                     {
                         if(dist < shortest)
                         {
@@ -107,14 +106,10 @@ struct RubiksCube
                         }
                     }
                 }
+                writeln(origin + dir*shortest);
             }
 
             writeln(index);
-            if(index >= 0)
-            {
-                cubes[index].transform.scale(1.0f, 1.0f, 1.0f);
-            }
-
             return index;
         }
 
@@ -128,19 +123,19 @@ struct RubiksCube
 
             Vec3f delta = worldPos - o;
 
-            // Test intersection with the 2 planes perpendicular to the OBB's X axis
+            for(int i=0; i<3; ++i)
             {
-                Vec3f xaxis = Vec3f(model[0][0], model[1][0], model[2][0]);
-                float e = dot(xaxis, delta);
-                float f = dot(d, xaxis);
+                Vec3f axis = Vec3f(model[0][i], model[1][i], model[2][i]);
+                float e = dot(axis, delta);
+                float f = dot(d, axis);
 
                 if(abs(f) > 0.001f) // Standard case
                 {
-                    float t1 = (e+min.x)/f; // Intersection with the "left" plane
-                    float t2 = (e+max.x)/f; // Intersection with the "right" plane
+                    float t1 = (e+min.vector[i])/f; // Intersection with the "left" plane
+                    float t2 = (e+max.vector[i])/f; // Intersection with the "right" plane
                     // t1 and t2 now contain distances betwen ray origin and ray-plane intersections
 
-                    // We want t1 to represent the nearest intersection, 
+                    // We want t1 to represent the nearest intersection,
                     // so if it's not the case, invert t1 and t2
                     if (t1>t2){
                         // swap t1 and t2
@@ -170,91 +165,7 @@ struct RubiksCube
                 }
                 else // Rare case : the ray is almost parallel to the planes, so they don't have any "intersection"
                 {
-                    if(-e+min.x > 0.0f || -e+max.x < 0.0f)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-
-            // Test intersection with the 2 planes perpendicular to the OBB's Y axis
-            // Exactly the same thing than above.
-            {
-                Vec3f yaxis = Vec3f(model[0][1], model[1][1], model[2][1]);
-                float e = dot(yaxis, delta);
-                float f = dot(d, yaxis);
-
-                if(abs(f) > 0.001f)
-                {
-                    float t1 = (e+min.y)/f;
-                    float t2 = (e+max.y)/f;
-
-                    if(t1>t2)
-                    {
-                        float w=t1;
-                        t1=t2;
-                        t2=w;
-                    }
-
-                    if(t2 < tMax)
-                    {
-                        tMax = t2;
-                    }
-                    if(t1 > tMin)
-                    {
-                        tMin = t1;
-                    }
-                    if(tMin > tMax)
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    if(-e+min.y > 0.0f || -e+max.y < 0.0f)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-
-            // Test intersection with the 2 planes perpendicular to the OBB's Z axis
-            // Exactly the same thing than above.
-            {
-                Vec3f zaxis = Vec3f(model[0][2], model[1][2], model[2][2]);
-                float e = dot(zaxis, delta);
-                float f = dot(d, zaxis);
-
-                if(abs(f) > 0.001f)
-                {
-                    float t1 = (e+min.z)/f;
-                    float t2 = (e+max.z)/f;
-
-                    if(t1>t2)
-                    {
-                        float w=t1;
-                        t1=t2;
-                        t2=w;
-                    }
-
-                    if(t2 < tMax)
-                    {
-                        tMax = t2;
-                    }
-                    if(t1 > tMin)
-                    {
-                        tMin = t1;
-                    }
-                    if(tMin > tMax)
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    if(-e+min.z > 0.0f || -e+max.z < 0.0f)
+                    if(-e+min.vector[i] > 0.0f || -e+max.vector[i] < 0.0f)
                     {
                         return false;
                     }

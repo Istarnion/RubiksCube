@@ -96,9 +96,9 @@ struct Cube
         GLuint positionAttribute = 0;
         GLuint colorAttribute = 1;
 
+    public:
         Shader shader;
 
-    public:
         Mat4f transform;
 
         this(Mat4f mvp)

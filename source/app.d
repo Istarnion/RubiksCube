@@ -10,6 +10,7 @@ import gl3n.linalg;
 
 import rubikscube;
 import camera;
+import shader;
 
 alias Vector!(float, 2) Vec2f;
 alias Vector!(float, 3) Vec3f;
@@ -83,6 +84,7 @@ void main()
     cam.update();
 
     RubiksCube rCube = RubiksCube(cam.viewProjection);
+    Shader shader = loadShader("shaders/basic.vert", "shaders/basic.frag");
 
     float vel = 7.0f;
     Vec2f mouseDrag;
@@ -167,6 +169,7 @@ void main()
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             rCube.draw();
+            // cam.draw(shader); // For debugging ray picking
 
             SDL_GL_SwapWindow(window);
         }
