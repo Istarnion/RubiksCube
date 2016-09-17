@@ -1,124 +1,231 @@
-import std.stdio;
-import std.file;
-import std.string;
-
-import derelict.sdl2.sdl;
 import derelict.opengl3.gl3;
+import std.stdio;
+import std.string;
 
 import gl3n.linalg;
 
+alias Vector!(float, 2) Vec2f;
+alias Vector!(float, 3) Vec3f;
+alias Vector!(float, 4) Vec4f;
 alias Matrix!(float, 4, 4) Mat4f;
 
 class Shader
 {
-    private:
-        GLuint programID = 0;
-        GLuint MVP_ID = 0;
+private:
+    GLuint[] shaders;
+    bool linked;
 
-        enum
+    GLint[string] uniforms;
+
+public:
+    GLuint ID;
+
+    this()
+    {
+        ID = glCreateProgram();
+    }
+
+    ~this()
+    {
+        glDeleteProgram(ID);
+    }
+
+    bool attachShader(string shaderSource, GLenum type)
+    {
+        if(linked)
         {
-            VERTEX_SHADER,
-            FRAGMENT_SHADER,
-            NUM_SHADERS
+            writeln("Trying to attach shader to already linked program!");
+            return false;
         }
 
-        GLuint[NUM_SHADERS] shaders;
+        auto shader = compileShader(shaderSource, type);
+        glAttachShader(ID, shader);
 
-    public:
-        this(string vertShader, string fragShader)
+        shaders ~= shader;
+        return true;
+    }
+
+    bool link()
+    {
+        if(linked)
         {
-            shaders[VERTEX_SHADER] = compileShader(vertShader, GL_VERTEX_SHADER);
-            shaders[FRAGMENT_SHADER] = compileShader(fragShader, GL_FRAGMENT_SHADER);
-
-            programID = glCreateProgram();
-            foreach(GLuint shader; shaders)
-            {
-                glAttachShader(programID, shader);
-            }
-
-            glLinkProgram(programID);
-            glValidateProgram(programID);
-
-            checkError(programID, GL_LINK_STATUS, true, "Failed to link. Invalid program:");
-
-            MVP_ID = glGetUniformLocation(programID, "MVP");
+            writeln("Shader program is already linked!");
+            return false;
         }
 
-        ~this()
+        if(shaders.length == 0)
         {
-            foreach(GLuint shader; shaders)
-            {
-                glDetachShader(programID, shader);
-                glDeleteShader(shader);
-            }
-            glDeleteProgram(programID);
+            writeln("Trying to link shader program with no attached shaders!");
+            return false;
         }
 
-        void bind()
+        glLinkProgram(ID);
+        glValidateProgram(ID);
+        checkError(ID, GL_LINK_STATUS, true, "Failed to link. Invalid program:");
+
+        foreach(shader; shaders)
         {
-            glUseProgram(programID);
+            glDetachShader(ID, shader);
+            glDeleteShader(shader);
         }
 
-        void unbind()
+        linked = true;
+        return true;
+    }
+
+    void bind()
+    {
+        glUseProgram(ID);
+    }
+
+    void unbind()
+    {
+        glUseProgram(0);
+    }
+
+    void setFloat(string uniform, float value, bool bind = false)
+    {
+        if(bind) glUseProgram(ID);
+
+        if(uniform in uniforms)
         {
-            glUseProgram(0);
+            glUniform1f(uniforms[uniform], value);
+        }
+        else
+        {
+            GLuint uniLoc = glGetUniformLocation(ID, uniform.toStringz());
+            uniforms[uniform] = uniLoc;
+
+            glUniform1f(uniLoc, value);
+        }
+    }
+
+    void setInt(string uniform, int value, bool bind = false)
+    {
+        if(bind) glUseProgram(ID);
+
+        if(uniform in uniforms)
+        {
+            glUniform1i(uniforms[uniform], value);
+        }
+        else
+        {
+            GLuint uniLoc = glGetUniformLocation(ID, uniform.toStringz());
+            uniforms[uniform] = uniLoc;
+
+            glUniform1i(uniLoc, value);
+        }
+    }
+
+    void setVector2f(string uniform, Vec2f value, bool bind = false)
+    {
+        if(bind) glUseProgram(ID);
+
+        if(uniform in uniforms)
+        {
+            glUniform2fv(uniforms[uniform], 1, value.value_ptr);
+        }
+        else
+        {
+            GLuint uniLoc = glGetUniformLocation(ID, uniform.toStringz());
+            uniforms[uniform] = uniLoc;
+
+            glUniform2fv(uniLoc, 1, value.value_ptr);
+        }
+    }
+
+    void setVector3f(string uniform, Vec3f value, bool bind = false)
+    {
+        if(bind) glUseProgram(ID);
+
+        if(uniform in uniforms)
+        {
+            glUniform3fv(uniforms[uniform], 1, value.value_ptr);
+        }
+        else
+        {
+            GLuint uniLoc = glGetUniformLocation(ID, uniform.toStringz());
+            uniforms[uniform] = uniLoc;
+
+            glUniform3fv(uniLoc, 1, value.value_ptr);
+        }
+    }
+
+    void setVector4f(string uniform, Vec4f value, bool bind = false)
+    {
+        if(bind) glUseProgram(ID);
+
+        if(uniform in uniforms)
+        {
+            glUniform4fv(uniforms[uniform], 1, value.value_ptr);
+        }
+        else
+        {
+            GLuint uniLoc = glGetUniformLocation(ID, uniform.toStringz());
+            uniforms[uniform] = uniLoc;
+
+            glUniform4fv(uniLoc, 1, value.value_ptr);
+        }
+    }
+
+    void setMatrix4(string uniform, Mat4f value, bool bind = false)
+    {
+        if(bind) glUseProgram(ID);
+
+        if(uniform in uniforms)
+        {
+            glUniformMatrix4fv(uniforms[uniform], 1, GL_TRUE, value.value_ptr);
+        }
+        else
+        {
+            GLuint uniLoc = glGetUniformLocation(ID, uniform.toStringz());
+            uniforms[uniform] = uniLoc;
+
+            glUniformMatrix4fv(uniLoc, 1, GL_TRUE, value.value_ptr);
+        }
+    }
+
+private:
+    GLuint compileShader(string sourceCode, GLenum shaderType)
+    {
+        auto shaderID = glCreateShader(shaderType);
+        auto src = toStringz(sourceCode);
+        glShaderSource(shaderID, 1, &src, cast(GLint*)0);
+        glCompileShader(shaderID);
+
+        checkError(shaderID, GL_COMPILE_STATUS, false, "Failed to compile shader:\n"~sourceCode);
+
+        return shaderID;
+    }
+
+    void checkError(GLuint id, GLuint flag, bool isProgram, string errorMessage)
+    {
+        GLint success = 0;
+
+        if(isProgram)
+        {
+            glGetProgramiv(id, flag, &success);
+        }
+        else
+        {
+            glGetShaderiv(id, flag, &success);
         }
 
-        void setMVP(Mat4f mvp)
+        if(success == GL_FALSE)
         {
-            glUniformMatrix4fv(MVP_ID, 1, GL_TRUE, mvp.value_ptr);
-        }
-
-    private:
-        int compileShader(string sourceCode, int shaderType)
-        {
-            auto shaderID = glCreateShader(shaderType);
-            auto src = toStringz(sourceCode);
-            glShaderSource(shaderID, 1, &src, cast(GLint*)0);
-            glCompileShader(shaderID);
-
-            checkError(shaderID, GL_COMPILE_STATUS, false, "Failed to compile shader:");
-
-            return shaderID;
-        }
-
-        void checkError(GLuint id, GLuint flag, bool isProgram, string errorMessage)
-        {
-            GLint success = 0;
+            GLchar[1024] error;
 
             if(isProgram)
             {
-                glGetProgramiv(id, flag, &success);
+                glGetProgramInfoLog(id, cast(GLint)error.sizeof, null, error.ptr);
             }
             else
             {
-                glGetShaderiv(id, flag, &success);
+                glGetShaderInfoLog(id, cast(GLint)error.sizeof, null, error.ptr);
             }
 
-            if(success == GL_FALSE)
-            {
-                GLchar[1024] error;
-
-                if(isProgram)
-                {
-                    glGetProgramInfoLog(id, cast(GLint)error.sizeof, null, error.ptr);
-                }
-                else
-                {
-                    glGetShaderInfoLog(id, cast(GLint)error.sizeof, null, error.ptr);
-                }
-
-                writeln(errorMessage);
-                writeln("\t"~error);
-            }
+            writeln(errorMessage);
+            writeln("\t"~fromStringz(error.ptr));
         }
+    }
 }
-
-Shader loadShader(string vertShader, string fragShader)
-{
-    string vShaderSource = cast(string)read(vertShader);
-    string fShaderSource = cast(string)read(fragShader);
-
-    return new Shader(vShaderSource, fShaderSource);
-}
-

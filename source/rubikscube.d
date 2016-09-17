@@ -17,7 +17,7 @@ struct RubiksCube
     private:
         Cube[27] cubes;
 
-        float spacing = 2.5f;;
+        float spacing = 2.1f;;
 
     public:
         Mat4f model;
@@ -113,6 +113,9 @@ struct RubiksCube
             return index;
         }
 
+        /*
+        * Source: http://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/picking-with-custom-ray-obb-function/
+        */
         bool rayVsCube(Vec3f o, Vec3f d, Vec3f min, Vec3f max, Mat4f model, ref float dist)
         {
             // Intersection method from Real-Time Rendering and Essential Mathematics for Games
@@ -176,4 +179,3 @@ struct RubiksCube
             return true;
         }
 }
-

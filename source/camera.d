@@ -127,7 +127,7 @@ struct Camera
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*6), cast(GLvoid*)(GLfloat.sizeof*3));
 
         s.bind();
-        s.setMVP(viewProjection);
+        s.setMatrix4("MVP", viewProjection);
 
         glDrawArrays(GL_LINES, 0, 4);
 

@@ -1,4 +1,5 @@
 import std.stdio;
+import std.file;
 
 import derelict.sdl2.sdl;
 import derelict.opengl3.gl3;
@@ -110,8 +111,12 @@ struct Cube
         {
             transform.make_identity();
 
-            shader = loadShader("shaders/basic.vert", "shaders/basic.frag");
-            shader.setMVP(mvp);
+            shader = new Shader();
+            shader.attachShader(readText("shaders/basic.vert"), GL_VERTEX_SHADER);
+            shader.attachShader(readText("shaders/basic.frag"), GL_FRAGMENT_SHADER);
+            shader.link();
+
+            shader.setMatrix4("MVP", mvp, true);
 
             glGenVertexArrays(1, &VAO);
             glBindVertexArray(VAO);
@@ -130,7 +135,7 @@ struct Cube
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.sizeof, indices.ptr, GL_STATIC_DRAW);
 
-            update(mvp);
+            glBindVertexArray(0);
         }
 
         void draw()
@@ -147,7 +152,7 @@ struct Cube
         void update(Mat4f mvp)
         {
             shader.bind();
-            shader.setMVP(mvp * transform);
+            shader.setMatrix4("MVP", mvp * transform);
             shader.unbind();
         }
 
