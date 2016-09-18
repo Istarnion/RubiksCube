@@ -16,10 +16,6 @@ alias Vector!(float, 4) Vec4f;
 
 struct RubiksCube
 {
-    Cube[27] cubes;
-
-    float spacing = 2.1f;;
-
     enum Side
     {
         GREEN,
@@ -30,12 +26,9 @@ struct RubiksCube
         WHITE
     }
 
-    enum Rotation
-    {
-        PITCH,
-        ROLL,
-        YAW
-    }
+    Cube*[27] cubes;
+
+    float spacing = 2.1f;;
 
     Mat4f model;
     Mat4f viewProjection;
@@ -46,7 +39,7 @@ struct RubiksCube
         model.make_identity();
         for(int i=0; i<cubes.length; ++i)
         {
-            cubes[i].init(vp);
+            cubes[i] = new Cube(vp);
         }
 
         init();
@@ -77,6 +70,10 @@ struct RubiksCube
                 }
             }
         }
+    }
+
+    int toIndex(int x, int y, int z) {
+        return x*9 + y*3 + z;
     }
 
     void draw()
@@ -128,7 +125,7 @@ struct RubiksCube
             reset();
         }
         else if(matchFirst(input, "[gGrRbByYoOwW]{1}[iI]?")) {
-            bool clockwise = input.length == 1;
+            bool clockwise = true;
             char side = toLower(input)[0];
 
             if(side == 'g') {
@@ -154,7 +151,132 @@ struct RubiksCube
 
     void rotate(Side side, bool clockwise)
     {
+        switch(side)
+        {
+            case Side.RED, Side.ORANGE:
+                int xindex = side == Side.RED? 2 : 0;
 
+                // Swapping places in the array
+                Cube* temp;
+                for(int i=0; i<2; i++)
+                {
+                    temp = cubes[toIndex(xindex, 0, i)];
+
+                    cubes[toIndex(xindex, 0, i)] =
+                            cubes[toIndex(xindex, i, 2)];
+
+                    cubes[toIndex(xindex, i, 2)] =
+                            cubes[toIndex(xindex, 2, 2-i)];
+
+                    cubes[toIndex(xindex, 2, 2-i)] =
+                            cubes[toIndex(xindex, 2-i, 0)];
+
+                    cubes[toIndex(xindex, 2-i, 0)] =
+                            temp;
+                }
+
+                // Rotating the cubes
+                Mat4f mvp = viewProjection * model;
+
+                float axis = -1;
+                //if(side == Side.RED && clockwise) axis = 1;
+                //else if(side == Side.ORANGE && !clockwise) axis = 1;
+
+                for(int y=0; y<3; ++y)
+                {
+                    for(int z=0; z<3; ++z)
+                    {
+                        int index = toIndex(xindex, y, z);
+                        cubes[index].transform.rotate(
+                                cast(float)(PI/2.0), Vec3f(axis, 0, 0));
+                        cubes[index].update(mvp);
+                    }
+                }
+                break;
+            case Side.GREEN, Side.BLUE:
+                int zindex = side == Side.GREEN? 2 : 0;
+
+                // Swapping places in the array
+                Cube* temp;
+                for(int i=0; i<1; i++) {
+                    for(int j=0; j<2; j++) {
+                        temp = cubes[toIndex(i, j, zindex)];
+
+                        cubes[toIndex(i, j, zindex)] =
+                                cubes[toIndex(j, 2-i, zindex)];
+
+                        cubes[toIndex(j, 2-i, zindex)] =
+                                cubes[toIndex(2-i, 2-j, zindex)];
+
+                        cubes[toIndex(2-i, 2-j, zindex)] =
+                                cubes[toIndex(2-j, i, zindex)];
+
+                        cubes[toIndex(2-j, i, zindex)] =
+                                temp;
+                    }
+                }
+
+                // Rotating the cubes
+                Mat4f mvp = viewProjection * model;
+
+                float axis = -1;
+                //if(side == Side.GREEN && clockwise) axis = 1;
+                //else if(side == Side.BLUE && !clockwise) axis = 1;
+
+                for(int x=0; x<3; ++x)
+                {
+                    for(int y=0; y<3; ++y)
+                    {
+                        int index = toIndex(x, y, zindex);
+                        cubes[index].transform.rotate(
+                                cast(float)(PI/2.0), Vec3f(0, 0, axis));
+                        cubes[index].update(mvp);
+                    }
+                }
+                break;
+            case Side.YELLOW, Side.WHITE:
+                int yindex = side == Side.WHITE? 2 : 0;
+
+                // Swapping places in the array
+                Cube* temp;
+                for(int i=0; i<1; i++) {
+                    for(int j=0; j<2; j++) {
+                        temp = cubes[toIndex(i, yindex, j)];
+
+                        cubes[toIndex(i, yindex, j)] =
+                                cubes[toIndex(j, yindex, 2-i)];
+
+                        cubes[toIndex(j, yindex, 2-i)] =
+                                cubes[toIndex(2-i, yindex, 2-j)];
+
+                        cubes[toIndex(2-i, yindex, 2-j)] =
+                                cubes[toIndex(2-j, yindex, i)];
+
+                        cubes[toIndex(2-j, yindex, i)] =
+                                temp;
+                    }
+                }
+
+                // Rotating the cubes
+                Mat4f mvp = viewProjection * model;
+
+                float axis = 1;
+                //if(side == Side.WHITE && clockwise) axis = 1;
+                //else if(side == Side.YELLOW && !clockwise) axis = 1;
+
+                for(int x=0; x<3; ++x)
+                {
+                    for(int z=0; z<3; ++z)
+                    {
+                        int index = toIndex(x, yindex, z);
+                        cubes[index].transform.rotate(
+                                cast(float)(PI/2.0), Vec3f(0, axis, 0));
+                        cubes[index].update(mvp);
+                    }
+                }
+                break;
+            default: assert(0);
+        }
     }
 }
 

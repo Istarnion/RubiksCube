@@ -20,43 +20,43 @@ Yellow  = 0xFFD500 -> (1.00, 0.84, 0.00) DOWN
 White   = 0xFFFFFF -> (1.00, 1.00, 1.00) UP
 */
 
-const GLfloat[24*6] vertices = [
-//  X     Y     Z      R     G     B
+const GLfloat[36*6] vertices = [
+//  X     Y     Z      R     G     B    Normals
     // front face
-    -1.0, -1.0,  1.0,  0.0,  0.6,  0.4,
-     1.0, -1.0,  1.0,  0.0,  0.6,  0.4,
-     1.0,  1.0,  1.0,  0.0,  0.6,  0.4,
-    -1.0,  1.0,  1.0,  0.0,  0.6,  0.4,
+    -1.0, -1.0,  1.0,  0.0,  0.6,  0.4, 0, 0, 1,
+     1.0, -1.0,  1.0,  0.0,  0.6,  0.4, 0, 0, 1,
+     1.0,  1.0,  1.0,  0.0,  0.6,  0.4, 0, 0, 1,
+    -1.0,  1.0,  1.0,  0.0,  0.6,  0.4, 0, 0, 1,
 
     // right face
-     1.0, -1.0,  1.0,  0.8,  0.1,  0.2,
-     1.0, -1.0, -1.0,  0.8,  0.1,  0.2,
-     1.0,  1.0, -1.0,  0.8,  0.1,  0.2,
-     1.0,  1.0,  1.0,  0.8,  0.1,  0.2,
+     1.0, -1.0,  1.0,  0.8,  0.1,  0.2, 1, 0, 0,
+     1.0, -1.0, -1.0,  0.8,  0.1,  0.2, 1, 0, 0,
+     1.0,  1.0, -1.0,  0.8,  0.1,  0.2, 1, 0, 0,
+     1.0,  1.0,  1.0,  0.8,  0.1,  0.2, 1, 0, 0,
 
     // back face
-     1.0, -1.0, -1.0,  0.0,  0.3,  0.7,
-    -1.0, -1.0, -1.0,  0.0,  0.3,  0.7,
-    -1.0,  1.0, -1.0,  0.0,  0.3,  0.7,
-     1.0,  1.0, -1.0,  0.0,  0.3,  0.7,
+     1.0, -1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1,
+    -1.0, -1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1,
+    -1.0,  1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1,
+     1.0,  1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1,
 
     // left face
-    -1.0, -1.0, -1.0,  1.0,  0.4,  0.0,
-    -1.0, -1.0,  1.0,  1.0,  0.4,  0.0,
-    -1.0,  1.0,  1.0,  1.0,  0.4,  0.0,
-    -1.0,  1.0, -1.0,  1.0,  0.4,  0.0,
+    -1.0, -1.0, -1.0,  1.0,  0.4,  0.0, -1, 0, 0,
+    -1.0, -1.0,  1.0,  1.0,  0.4,  0.0, -1, 0, 0,
+    -1.0,  1.0,  1.0,  1.0,  0.4,  0.0, -1, 0, 0,
+    -1.0,  1.0, -1.0,  1.0,  0.4,  0.0, -1, 0, 0,
 
     // top face
-    -1.0,  1.0,  1.0,  1.0,  1.0,  1.0,
-     1.0,  1.0,  1.0,  1.0,  1.0,  1.0,
-     1.0,  1.0, -1.0,  1.0,  1.0,  1.0,
-    -1.0,  1.0, -1.0,  1.0,  1.0,  1.0,
+    -1.0,  1.0,  1.0,  1.0,  1.0,  1.0, 0, 1, 0,
+     1.0,  1.0,  1.0,  1.0,  1.0,  1.0, 0, 1, 0,
+     1.0,  1.0, -1.0,  1.0,  1.0,  1.0, 0, 1, 0,
+    -1.0,  1.0, -1.0,  1.0,  1.0,  1.0, 0, 1, 0,
 
     // bottom face
-    -1.0, -1.0,  1.0,  1.0,  0.8,  0.0,
-     1.0, -1.0,  1.0,  1.0,  0.8,  0.0,
-     1.0, -1.0, -1.0,  1.0,  0.8,  0.0,
-    -1.0, -1.0, -1.0,  1.0,  0.8,  0.0,
+    -1.0, -1.0,  1.0,  1.0,  0.8,  0.0, 0, -1, 0,
+     1.0, -1.0,  1.0,  1.0,  0.8,  0.0, 0, -1, 0,
+     1.0, -1.0, -1.0,  1.0,  0.8,  0.0, 0, -1, 0,
+    -1.0, -1.0, -1.0,  1.0,  0.8,  0.0, 0, -1, 0
 ];
 
 const GLuint[36] indices = [
@@ -86,7 +86,6 @@ const GLuint[36] indices = [
 ];
 
 struct Cube
-
 {
     private:
         GLuint VAO;
@@ -96,6 +95,7 @@ struct Cube
 
         GLuint positionAttribute = 0;
         GLuint colorAttribute = 1;
+        GLuint normalAttribute = 2;
 
     public:
         Shader shader;
@@ -109,14 +109,12 @@ struct Cube
 
         void init(Mat4f mvp)
         {
-            transform.make_identity();
-
             shader = new Shader();
             shader.attachShader(readText("shaders/basic.vert"), GL_VERTEX_SHADER);
             shader.attachShader(readText("shaders/basic.frag"), GL_FRAGMENT_SHADER);
             shader.link();
 
-            shader.setMatrix4("MVP", mvp, true);
+            shader.setMatrix4("MVP", mvp*transform, true);
 
             glGenVertexArrays(1, &VAO);
             glBindVertexArray(VAO);
@@ -126,10 +124,13 @@ struct Cube
             glBufferData(GL_ARRAY_BUFFER, vertices.sizeof, vertices.ptr, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(positionAttribute);
-            glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*6), cast(GLvoid*)0);
+            glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*9), cast(GLvoid*)0);
 
             glEnableVertexAttribArray(colorAttribute);
-            glVertexAttribPointer(colorAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*6), cast(GLvoid*)(GLfloat.sizeof*3));
+            glVertexAttribPointer(colorAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*9), cast(GLvoid*)(GLfloat.sizeof*3));
+
+            glEnableVertexAttribArray(normalAttribute);
+            glVertexAttribPointer(normalAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*9), cast(GLvoid*)(GLfloat.sizeof*6));
 
             glGenBuffers(1, &indexBufferObject);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
