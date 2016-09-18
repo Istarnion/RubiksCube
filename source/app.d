@@ -109,26 +109,27 @@ void main()
     auto textRenderer = new TextRenderer();
     textRenderer.generate();
 
-    float vel = 7.0f;
-    Vec2f mouseDrag;
-    bool dragging = false;
-    bool spaceDown = false;
+    // Rotation
+    bool up, right, left, down;
 
+    // text input
     string[] userInput;
     string[] textToShow;
     float blinkTimer = 0;
     float blinkDuration = 0.4f;
     bool showBlock = true;
 
+    // Time
     auto now = SDL_GetPerformanceCounter();
     auto last = now;
     float deltaTime = 0;
+
+    // Init
     bool running = true;
     SDL_Event event;
     SDL_StartTextInput();
     while(running)
     {
-        dragging = false;
         last = now;
         now = SDL_GetPerformanceCounter();
         deltaTime = cast(float)(now - last) / SDL_GetPerformanceFrequency();
@@ -164,6 +165,41 @@ void main()
                     rCube.parseCommand(join(userInput));
                     userInput = [];
                 }
+                else if(event.key.keysym.sym == SDLK_UP)
+                {
+                    up = true;
+                }
+                else if(event.key.keysym.sym == SDLK_RIGHT)
+                {
+                    right = true;
+                }
+                else if(event.key.keysym.sym == SDLK_LEFT)
+                {
+                    left = true;
+                }
+                else if(event.key.keysym.sym == SDLK_DOWN)
+                {
+                    down = true;
+                }
+            }
+            else if(event.type == SDL_KEYUP)
+            {
+                if(event.key.keysym.sym == SDLK_UP)
+                {
+                    up = false;
+                }
+                else if(event.key.keysym.sym == SDLK_RIGHT)
+                {
+                    right = false;
+                }
+                else if(event.key.keysym.sym == SDLK_LEFT)
+                {
+                    left = false;
+                }
+                else if(event.key.keysym.sym == SDLK_DOWN)
+                {
+                    down = false;
+                }
             }
             else if(event.type == SDL_TEXTINPUT)
             {
@@ -173,6 +209,8 @@ void main()
         }
         if(running)
         {
+            rCube.globalRotation(deltaTime, up, right, left, down);
+
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             rCube.draw();

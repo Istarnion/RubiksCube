@@ -97,8 +97,26 @@ struct RubiksCube
         }
     }
 
+    void globalRotation(float delta, bool up, bool right, bool left, bool down)
+    {
+        if(!up && !right && !left && !down) return;
+
+        Mat4f t = Mat4f.identity();
+
+        auto axis = Vec3f(
+            (up?1:-1) + (down?-1:1),
+            (right?-1:1) + (left?1:-1),
+            0);
+        t.rotate(7*delta, axis);
+
+        model = t * model;
+
+        update(viewProjection);
+    }
+
     void reset()
     {
+        model.make_identity();
         init();
         update(viewProjection);
     }
@@ -138,5 +156,5 @@ struct RubiksCube
     {
 
     }
-
 }
+
