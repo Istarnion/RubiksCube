@@ -20,7 +20,7 @@ alias Vector!(float, 3) Vec3f;
 alias Vector!(float, 4) Vec4f;
 alias Matrix!(float, 4, 4) Mat4f;
 
-const char BLOCK_CHAR = '\n';
+const string BLOCK_CHAR = "\n";
 
 void main()
 {
@@ -114,8 +114,8 @@ void main()
     bool dragging = false;
     bool spaceDown = false;
 
-    string userInput;
-    string textToShow;
+    string[] userInput;
+    string[] textToShow;
     float blinkTimer = 0;
     float blinkDuration = 0.4f;
     bool showBlock = true;
@@ -159,29 +159,16 @@ void main()
                         userInput = userInput[0 .. $-1];
                     }
                 }
+                else if(event.key.keysym.sym == SDLK_RETURN)
+                {
+                    rCube.parseCommand(join(userInput));
+                    userInput = [];
+                }
             }
             else if(event.type == SDL_TEXTINPUT)
             {
-                char[] input = fromStringz(event.text.text.ptr);
-                if(input[0] in textRenderer.texCoords)
-                {
-                    userInput ~= fromStringz(event.text.text.ptr);
-                }
-            }
-            else if(event.type == SDL_MOUSEMOTION)
-            {
-                if(event.motion.state & SDL_BUTTON_LMASK)
-                {
-                    int x = event.motion.x;
-                    int y = event.motion.y;
-                    int dx = event.motion.xrel;
-                    int dy = event.motion.yrel;
-
-                    rotate(rCube, x-dx, y-dy, dx, dy, deltaTime);
-                }
-            }
-            else if(event.type == SDL_MOUSEBUTTONDOWN)
-            {
+                string input = cast(string)fromStringz(event.text.text.ptr);
+                userInput ~= input.idup;
             }
         }
         if(running)
@@ -199,11 +186,11 @@ void main()
 
             if(showBlock)
             {
-                textToShow = "Input: "~userInput~BLOCK_CHAR;
+                textToShow = userInput ~ BLOCK_CHAR;
             }
             else
             {
-                textToShow = "Input: "~userInput;
+                textToShow = userInput;
             }
             textRenderer.drawText(
                     textToShow,
@@ -217,15 +204,3 @@ void main()
     SDL_DestroyWindow(window);
 }
 
-void rotate(ref RubiksCube rCube, int mousex, int mousey, int movex, int movey, float deltaTime)
-{
-    //Mat4f transformation = Mat4f.identity();
-
-    //Vec3f delta = Vec3f(movey, movex, 0);
-    //delta.normalize();
-    //transformation.rotate(vel*deltaTime, delta);
-
-    //rCube.model = transformation * rCube.model;
-
-    //rCube.update(cam.viewProjection);
-}

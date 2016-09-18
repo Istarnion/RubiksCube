@@ -19,8 +19,9 @@ class TextRenderer
     Texture2D fontTexture;
     Shader shader;
 
-    Vec2f[4][char] texCoords;
-    float glyphWidth, glyphHeight;
+    Vec2f[4][string] texCoords;
+    float glyphWidth, glyphHeight;  // Used for tex coords
+    float charWidth, charHeight;    // Used for rendering
 
     void generate()
     {
@@ -40,63 +41,71 @@ class TextRenderer
         uint numRows = 16;
         glyphWidth = 1.0f / numCols;
         glyphHeight = 1.0f / numRows;
+        charWidth = glyphWidth;
+        charHeight = glyphHeight;
 
-        // Upper case
-        int offset = 65;
-        for(int i=offset; i<offset+26; ++i)
-        {
-            int row = i%16;
-            int col = i/16;
-
-            float x = col * glyphWidth;
-            float y = row * glyphHeight;
-
-            Vec2f[4] glyphCoords = [
-                Vec2f(x, y), Vec2f(x, y+glyphHeight),
-                Vec2f(x+glyphWidth, y), Vec2f(x+glyphWidth, y+glyphHeight)
-            ];
-
-            char glyph = cast(char)('A'+(i-offset));
-            texCoords[glyph] = glyphCoords;
-        }
-
-        // Lower case
-        offset = 97;
-        for(int i=offset; i<offset+26; ++i)
-        {
-            int row = i%16;
-            int col = i/16;
-
-            float x = col * glyphWidth;
-            float y = row * glyphHeight;
-
-            Vec2f[4] glyphCoords = [
-                Vec2f(x, y), Vec2f(x, y+glyphHeight),
-                Vec2f(x+glyphWidth, y), Vec2f(x+glyphWidth, y+glyphHeight)
-            ];
-
-            char glyph = cast(char)('a'+(i-offset));
-            texCoords[glyph] = glyphCoords;
-        }
-
-        texCoords[' '] = [
-            Vec2f(0, 0), Vec2f(0, 0),
-            Vec2f(0, 0), Vec2f(0, 0)
+        /+
+        string characters =
+            " ☺☻♥♦♣♠\0\0\0\0\0\0\0\0\0"~
+            "\0\0\0\0\0§\0\0\0\0\0\0\0\0\0\0"~
+            "\0!\"#$%&'()*+,-./"~
+            "0123456789:;<=>?"~
+            "@ABCDEFGHIJKLMNO"~
+            "PQRSTUVWXYZ[\\]^_"~
+            "`abcdefghijklmno"~
+            "pqrstuvwxyz{¦}~\0"~
+            "\0üé\0äàå\0\0ëèï\0ìÄÅ"~
+            "\0æÆ\0öò\0ùÿÖÜø£Ø\0\0"~
+            "áíóúñÑ\0\0¿®\0½¼¡«»"~
+            "\0\0\0\0\0Á\0À©\0\0\0\0\0¥\0"~
+            "\0\0\0\0\0\0\0Ã\0\0\0\0\0\0\0\0"~
+            "\0\0\0\0\0¹\0\0\0\0\0\0\0\0\0\0"~
+            "\0\0\0\0\0\0\0\0\0Ú\0ÙýÝ\0\0"~
+            "\0\0\0\0\0§÷\0\0\0\0\0\0\0\0\0";
+        +/
+        string[] characters = [
+            " ","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0",
+            "\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0",
+            "\0","!","\"","#","$","%","&","'","(",")","*","+",",","-",".","/",
+            "0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?",
+            "@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O",
+            "P","Q","R","S","T","U","V","W","X","Y","Z","[","\\","]","^","_",
+            "`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o",
+            "p","q","r","s","t","u","v","w","x","y","z","{","¦","}","~","\0",
+            "\0","ü","é","\0","ä","à","å","\0","\0","ë","è","ï","\0","ì","Ä","Å",
+            "\0","æ","Æ","\0","ö","ò","\0","ù","ÿ","Ö","Ü","ø","£","Ø","\0","\0",
+            "á","í","ó","ú","ñ","Ñ","\0","\0","¿","®","\0","½","¼","¡","«","»",
+            "\0","\0","\0","\0","\0","Á","\0","À","©","\0","\0","\0","\0","\0","¥","\0",
+            "\0","\0","\0","\0","\0","\0","\0","Ã","\0","\0","\0","\0","\0","\0","\0","\0",
+            "\0","\0","\0","\0","\0","¹","\0","\0","\0","\0","\0","\0","\0","\0","\0","\0",
+            "\0","\0","\0","\0","\0","\0","\0","\0","\0","Ú","\0","Ù","ý","Ý","\0","\0",
+            "\0","\0","\0","\0","\0","§","÷","\0","\0","\0","\0","\0","\0","\0","\0","\0"
         ];
 
-        texCoords[':'] = [
-            Vec2f(3*glyphWidth, 10*glyphHeight), Vec2f(3*glyphWidth, 11*glyphHeight),
-            Vec2f(4*glyphWidth, 10*glyphHeight), Vec2f(4*glyphWidth, 11*glyphHeight)
-        ];
+        for(int i=0; i<256; ++i)
+        {
+            string c = characters[i];
+            //writeln(c);
+
+            float x = i/16;
+            float y = i%16;
+
+            texCoords[c] = [
+                Vec2f(x*glyphWidth, y*glyphHeight),
+                Vec2f(x*glyphWidth, (y+1)*glyphHeight),
+                Vec2f((x+1)*glyphWidth, y*glyphHeight),
+                Vec2f((x+1)*glyphWidth, (y+1)*glyphHeight)
+            ];
+        }
 
         // Block
-        texCoords['\n'] = [
+        texCoords["\n"] = [
             Vec2f(13*glyphWidth, 11*glyphHeight), Vec2f(13*glyphWidth, 12*glyphHeight),
             Vec2f(14*glyphWidth, 11*glyphHeight), Vec2f(14*glyphWidth, 12*glyphHeight)
         ];
     }
 
-    void drawText(string text, float x, float y, Vec3f color)
+    void drawText(string[] text, float x, float y, Vec3f color)
     {
         GLuint VAO;
         GLuint VBO;
@@ -113,16 +122,17 @@ class TextRenderer
 
         for(int i=0; i<text.length; ++i)
         {
-            char c = text[i];
+            string c = text[i];
+            if(c !in texCoords) continue;
 
-            GLfloat xOffset = x + i * glyphWidth;
+            GLfloat xOffset = x + i * charWidth;
             GLfloat yOffset = y;
             Vec2f[4] tex = texCoords[c];
             GLfloat[16] glyphBuffer= [
                 xOffset,            yOffset,             tex[0].x, tex[0].y,
-                xOffset,            yOffset-glyphHeight, tex[1].x, tex[1].y,
-                xOffset+glyphWidth, yOffset,             tex[2].x, tex[2].y,
-                xOffset+glyphWidth, yOffset-glyphHeight, tex[3].x, tex[3].y
+                xOffset,            yOffset-charHeight, tex[1].x, tex[1].y,
+                xOffset+charWidth, yOffset,             tex[2].x, tex[2].y,
+                xOffset+charWidth, yOffset-charHeight, tex[3].x, tex[3].y
             ];
 
             buffer ~= glyphBuffer;
