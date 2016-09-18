@@ -1,6 +1,7 @@
 import std.stdio;
 import std.string;
 import std.regex;
+import std.random;
 
 import derelict.sdl2.sdl;
 import derelict.opengl3.gl3;
@@ -118,11 +119,30 @@ struct RubiksCube
         update(viewProjection);
     }
 
+    void scramble()
+    {
+        reset();
+        for(int i=0; i<500; ++i)
+        {
+            int j = uniform(0, 6);
+            if(j == 0) rotate(Side.GREEN, true);
+            else if(j == 1) rotate(Side.RED, true);
+            else if(j == 2) rotate(Side.YELLOW, true);
+            else if(j == 3) rotate(Side.ORANGE, true);
+            else if(j == 4) rotate(Side.BLUE, true);
+            else if(j == 5) rotate(Side.WHITE, true);
+        }
+    }
+
     void parseCommand(string input)
     {
         if(input == "reset")
         {
             reset();
+        }
+        else if(input == "scramble")
+        {
+            scramble();
         }
         else if(matchFirst(input, "[gGrRbByYoOwW]{1}[iI]?")) {
             bool clockwise = true;
