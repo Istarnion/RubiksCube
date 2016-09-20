@@ -37,7 +37,6 @@ struct RubiksCube
     Mat4f viewProjection;
 
     Texture2D diffuseTexture;
-    Texture2D normalMap;
 
     this(Mat4f vp)
     {
@@ -46,6 +45,7 @@ struct RubiksCube
         for(int i=0; i<cubes.length; ++i)
         {
             cubes[i] = new Cube(vp);
+            cubes[i].number = i;
         }
 
         init();
@@ -59,13 +59,6 @@ struct RubiksCube
         diffuseTexture.imageFormat = GL_RGBA;
         diffuseTexture.internalFormat = GL_RGBA;
         diffuseTexture.generate(256, 384, cast(ubyte*)surface.pixels);
-        SDL_FreeSurface(surface);
-
-        surface = IMG_Load("normal.png");
-        normalMap = new Texture2D();
-        normalMap.imageFormat = GL_RGBA;
-        normalMap.internalFormat = GL_RGBA;
-        normalMap.generate(256, 384, cast(ubyte*)surface.pixels);
         SDL_FreeSurface(surface);
     }
 
@@ -99,10 +92,6 @@ struct RubiksCube
     void draw()
     {
         diffuseTexture.bind();
-        glActiveTexture(GL_TEXTURE1);
-        normalMap.bind();
-
-        glActiveTexture(GL_TEXTURE0);
 
         for(int i=0; i<cubes.length; ++i)
         {
@@ -211,7 +200,7 @@ struct RubiksCube
                     }
                 }
 
-                rotateMatrix(face, ((side == Side.RED && clockwise) || (side == Side.ORANGE && !clockwise)));
+                rotateMatrix(face, ((side == Side.RED && !clockwise) || (side == Side.ORANGE && clockwise)));
 
                 for(int i=0; i<3; ++i)
                 {
@@ -251,7 +240,7 @@ struct RubiksCube
                     }
                 }
 
-                rotateMatrix(face, ((side == Side.GREEN && clockwise) || (side == Side.BLUE && !clockwise)));
+                rotateMatrix(face, ((side == Side.GREEN && !clockwise) || (side == Side.BLUE && clockwise)));
 
                 for(int i=0; i<3; ++i)
                 {
@@ -321,6 +310,22 @@ struct RubiksCube
                 break;
             default: assert(0);
         }
+
+        for (int x = 0; x < 3; ++x)
+        {
+            write("[");
+            for (int y = 0; y < 3; ++y)
+            {
+                write("[");
+                for (int z = 0; z < 3; ++z)
+                {
+                    write(cubes[toIndex(x, y, z)].number, ", ");
+                }
+                writeln("]");
+            }
+            writeln("]");
+        }
+        writeln("-------------------");
     }
 
     void rotateMatrix(ref Cube*[3][3] mat, bool clockwise)

@@ -99,6 +99,7 @@ struct Cube
         GLuint texAttribute         = 3;
 
     public:
+        int number;
         Shader shader;
 
         Mat4f transform;
