@@ -310,22 +310,6 @@ struct RubiksCube
                 break;
             default: assert(0);
         }
-
-        for (int x = 0; x < 3; ++x)
-        {
-            write("[");
-            for (int y = 0; y < 3; ++y)
-            {
-                write("[");
-                for (int z = 0; z < 3; ++z)
-                {
-                    write(cubes[toIndex(x, y, z)].number, ", ");
-                }
-                writeln("]");
-            }
-            writeln("]");
-        }
-        writeln("-------------------");
     }
 
     void rotateMatrix(ref Cube*[3][3] mat, bool clockwise)
