@@ -4,12 +4,14 @@ import std.regex;
 import std.random;
 
 import derelict.sdl2.sdl;
+import derelict.sdl2.image;
 import derelict.opengl3.gl3;
 
 import gl3n.linalg;
 import gl3n.math;
 
 import cube;
+import texture;
 
 alias Matrix!(float, 4, 4) Mat4f;
 alias Vector!(float, 3) Vec3f;
@@ -29,10 +31,13 @@ struct RubiksCube
 
     Cube*[27] cubes;
 
-    float spacing = 2.1f;;
+    float spacing = 2.0f;;
 
     Mat4f model;
     Mat4f viewProjection;
+
+    Texture2D diffuseTexture;
+    Texture2D normalMap;
 
     this(Mat4f vp)
     {
@@ -48,6 +53,20 @@ struct RubiksCube
         {
             cubes[i].update(vp);
         }
+
+        auto surface = IMG_Load("diffuse.png");
+        diffuseTexture = new Texture2D();
+        diffuseTexture.imageFormat = GL_RGBA;
+        diffuseTexture.internalFormat = GL_RGBA;
+        diffuseTexture.generate(256, 384, cast(ubyte*)surface.pixels);
+        SDL_FreeSurface(surface);
+
+        surface = IMG_Load("normal.png");
+        normalMap = new Texture2D();
+        normalMap.imageFormat = GL_RGBA;
+        normalMap.internalFormat = GL_RGBA;
+        normalMap.generate(256, 384, cast(ubyte*)surface.pixels);
+        SDL_FreeSurface(surface);
     }
 
     void init()
@@ -79,6 +98,12 @@ struct RubiksCube
 
     void draw()
     {
+        diffuseTexture.bind();
+        glActiveTexture(GL_TEXTURE1);
+        normalMap.bind();
+
+        glActiveTexture(GL_TEXTURE0);
+
         for(int i=0; i<cubes.length; ++i)
         {
             cubes[i].draw();
@@ -144,8 +169,8 @@ struct RubiksCube
         {
             scramble();
         }
-        else if(matchFirst(input, "[gGrRbByYoOwW]{1}[iI]?")) {
-            bool clockwise = true;
+        else if(matchFirst(input, "^[gGrRbByYoOwW]{1}[iI]?$")) {
+            bool clockwise = input.length < 2;
             char side = toLower(input)[0];
 
             if(side == 'g') {
@@ -171,36 +196,37 @@ struct RubiksCube
 
     void rotate(Side side, bool clockwise)
     {
+        Cube*[3][3] face;
         switch(side)
         {
             case Side.RED, Side.ORANGE:
                 int xindex = side == Side.RED? 2 : 0;
 
                 // Swapping places in the array
-                Cube* temp;
-                for(int i=0; i<2; i++)
+                for(int i=0; i<3; ++i)
                 {
-                    temp = cubes[toIndex(xindex, 0, i)];
+                    for(int j=0; j<3; ++j)
+                    {
+                        face[i][j] = cubes[toIndex(xindex, i, j)];
+                    }
+                }
 
-                    cubes[toIndex(xindex, 0, i)] =
-                            cubes[toIndex(xindex, i, 2)];
+                rotateMatrix(face, ((side == Side.RED && clockwise) || (side == Side.ORANGE && !clockwise)));
 
-                    cubes[toIndex(xindex, i, 2)] =
-                            cubes[toIndex(xindex, 2, 2-i)];
-
-                    cubes[toIndex(xindex, 2, 2-i)] =
-                            cubes[toIndex(xindex, 2-i, 0)];
-
-                    cubes[toIndex(xindex, 2-i, 0)] =
-                            temp;
+                for(int i=0; i<3; ++i)
+                {
+                    for(int j=0; j<3; ++j)
+                    {
+                        cubes[toIndex(xindex, i, j)] = face[i][j];
+                    }
                 }
 
                 // Rotating the cubes
                 Mat4f mvp = viewProjection * model;
 
                 float axis = -1;
-                //if(side == Side.RED && clockwise) axis = 1;
-                //else if(side == Side.ORANGE && !clockwise) axis = 1;
+                if(side == Side.RED && clockwise) axis = 1;
+                else if(side == Side.ORANGE && !clockwise) axis = 1;
 
                 for(int y=0; y<3; ++y)
                 {
@@ -217,22 +243,21 @@ struct RubiksCube
                 int zindex = side == Side.GREEN? 2 : 0;
 
                 // Swapping places in the array
-                Cube* temp;
-                for(int i=0; i<1; i++) {
-                    for(int j=0; j<2; j++) {
-                        temp = cubes[toIndex(i, j, zindex)];
+                for(int i=0; i<3; ++i)
+                {
+                    for(int j=0; j<3; ++j)
+                    {
+                        face[i][j] = cubes[toIndex(i, j, zindex)];
+                    }
+                }
 
-                        cubes[toIndex(i, j, zindex)] =
-                                cubes[toIndex(j, 2-i, zindex)];
+                rotateMatrix(face, ((side == Side.GREEN && clockwise) || (side == Side.BLUE && !clockwise)));
 
-                        cubes[toIndex(j, 2-i, zindex)] =
-                                cubes[toIndex(2-i, 2-j, zindex)];
-
-                        cubes[toIndex(2-i, 2-j, zindex)] =
-                                cubes[toIndex(2-j, i, zindex)];
-
-                        cubes[toIndex(2-j, i, zindex)] =
-                                temp;
+                for(int i=0; i<3; ++i)
+                {
+                    for(int j=0; j<3; ++j)
+                    {
+                        cubes[toIndex(i, j, zindex)] = face[i][j];
                     }
                 }
 
@@ -240,8 +265,8 @@ struct RubiksCube
                 Mat4f mvp = viewProjection * model;
 
                 float axis = -1;
-                //if(side == Side.GREEN && clockwise) axis = 1;
-                //else if(side == Side.BLUE && !clockwise) axis = 1;
+                if(side == Side.GREEN && clockwise) axis = 1;
+                else if(side == Side.BLUE && !clockwise) axis = 1;
 
                 for(int x=0; x<3; ++x)
                 {
@@ -258,31 +283,30 @@ struct RubiksCube
                 int yindex = side == Side.WHITE? 2 : 0;
 
                 // Swapping places in the array
-                Cube* temp;
-                for(int i=0; i<1; i++) {
-                    for(int j=0; j<2; j++) {
-                        temp = cubes[toIndex(i, yindex, j)];
+                for(int i=0; i<3; ++i)
+                {
+                    for(int j=0; j<3; ++j)
+                    {
+                        face[i][j] = cubes[toIndex(i, yindex, j)];
+                    }
+                }
 
-                        cubes[toIndex(i, yindex, j)] =
-                                cubes[toIndex(j, yindex, 2-i)];
+                rotateMatrix(face, ((side == Side.WHITE && clockwise) || (side == Side.YELLOW && !clockwise)));
 
-                        cubes[toIndex(j, yindex, 2-i)] =
-                                cubes[toIndex(2-i, yindex, 2-j)];
-
-                        cubes[toIndex(2-i, yindex, 2-j)] =
-                                cubes[toIndex(2-j, yindex, i)];
-
-                        cubes[toIndex(2-j, yindex, i)] =
-                                temp;
+                for(int i=0; i<3; ++i)
+                {
+                    for(int j=0; j<3; ++j)
+                    {
+                        cubes[toIndex(i, yindex, j)] = face[i][j];
                     }
                 }
 
                 // Rotating the cubes
                 Mat4f mvp = viewProjection * model;
 
-                float axis = 1;
-                //if(side == Side.WHITE && clockwise) axis = 1;
-                //else if(side == Side.YELLOW && !clockwise) axis = 1;
+                float axis = -1;
+                if(side == Side.WHITE && clockwise) axis = 1;
+                else if(side == Side.YELLOW && !clockwise) axis = 1;
 
                 for(int x=0; x<3; ++x)
                 {
@@ -296,6 +320,41 @@ struct RubiksCube
                 }
                 break;
             default: assert(0);
+        }
+    }
+
+    void rotateMatrix(ref Cube*[3][3] mat, bool clockwise)
+    {
+        Cube* temp;
+        if(clockwise)
+        {
+            for(int i=0; i<2; i++)
+            {
+                temp = mat[0][i];
+
+                mat[0][i] = mat[i][2];
+
+                mat[i][2] = mat[2][2-i];
+
+                mat[2][2-i] = mat[2-i][0];
+
+                mat[2-i][0] = temp;
+            }
+        }
+        else
+        {
+            for(int i=0; i<2; i++)
+            {
+                temp = mat[0][i];
+
+                mat[0][i] = mat[2-i][0];
+
+                mat[2-i][0] = mat[2][2-i];
+
+                mat[2][2-i] = mat[i][2];
+
+                mat[i][2] = temp;
+            }
         }
     }
 }

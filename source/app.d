@@ -92,6 +92,10 @@ void main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
+
     glEnable(GL_MULTISAMPLE);
 
     glClearColor(0.18f, 0.18f, 0.18f, 1);

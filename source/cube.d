@@ -20,43 +20,43 @@ Yellow  = 0xFFD500 -> (1.00, 0.84, 0.00) DOWN
 White   = 0xFFFFFF -> (1.00, 1.00, 1.00) UP
 */
 
-const GLfloat[36*6] vertices = [
-//  X     Y     Z      R     G     B    Normals
+const GLfloat[44*6] vertices = [
+//  X     Y     Z      R     G     B    Normals  Tex coords
     // front face
-    -1.0, -1.0,  1.0,  0.0,  0.6,  0.4, 0, 0, 1,
-     1.0, -1.0,  1.0,  0.0,  0.6,  0.4, 0, 0, 1,
-     1.0,  1.0,  1.0,  0.0,  0.6,  0.4, 0, 0, 1,
-    -1.0,  1.0,  1.0,  0.0,  0.6,  0.4, 0, 0, 1,
+    -1.0, -1.0,  1.0,  0.0,  0.6,  0.4, 0, 0,  1, 0.0f, 0.00f,
+     1.0, -1.0,  1.0,  0.0,  0.6,  0.4, 0, 0,  1, 0.5f, 0.00f,
+     1.0,  1.0,  1.0,  0.0,  0.6,  0.4, 0, 0,  1, 0.5f, 0.33f,
+    -1.0,  1.0,  1.0,  0.0,  0.6,  0.4, 0, 0,  1, 0.0f, 0.33f,
 
     // right face
-     1.0, -1.0,  1.0,  0.8,  0.1,  0.2, 1, 0, 0,
-     1.0, -1.0, -1.0,  0.8,  0.1,  0.2, 1, 0, 0,
-     1.0,  1.0, -1.0,  0.8,  0.1,  0.2, 1, 0, 0,
-     1.0,  1.0,  1.0,  0.8,  0.1,  0.2, 1, 0, 0,
+     1.0, -1.0,  1.0,  0.8,  0.1,  0.2,  1, 0, 0, 0.5f, 0.33f,
+     1.0, -1.0, -1.0,  0.8,  0.1,  0.2,  1, 0, 0, 1.0f, 0.33f,
+     1.0,  1.0, -1.0,  0.8,  0.1,  0.2,  1, 0, 0, 1.0f, 0.00f,
+     1.0,  1.0,  1.0,  0.8,  0.1,  0.2,  1, 0, 0, 0.5f, 0.00f,
 
     // back face
-     1.0, -1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1,
-    -1.0, -1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1,
-    -1.0,  1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1,
-     1.0,  1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1,
+     1.0, -1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1, 0.5f, 0.33f,
+    -1.0, -1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1, 1.0f, 0.33f,
+    -1.0,  1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1, 1.0f, 0.66f,
+     1.0,  1.0, -1.0,  0.0,  0.3,  0.7, 0, 0, -1, 0.5f, 0.66f,
 
     // left face
-    -1.0, -1.0, -1.0,  1.0,  0.4,  0.0, -1, 0, 0,
-    -1.0, -1.0,  1.0,  1.0,  0.4,  0.0, -1, 0, 0,
-    -1.0,  1.0,  1.0,  1.0,  0.4,  0.0, -1, 0, 0,
-    -1.0,  1.0, -1.0,  1.0,  0.4,  0.0, -1, 0, 0,
+    -1.0, -1.0, -1.0,  1.0,  0.4,  0.0, -1, 0, 0, 0.0f, 0.33f,
+    -1.0, -1.0,  1.0,  1.0,  0.4,  0.0, -1, 0, 0, 0.5f, 0.33f,
+    -1.0,  1.0,  1.0,  1.0,  0.4,  0.0, -1, 0, 0, 0.5f, 0.66f,
+    -1.0,  1.0, -1.0,  1.0,  0.4,  0.0, -1, 0, 0, 0.0f, 0.66f,
 
     // top face
-    -1.0,  1.0,  1.0,  1.0,  1.0,  1.0, 0, 1, 0,
-     1.0,  1.0,  1.0,  1.0,  1.0,  1.0, 0, 1, 0,
-     1.0,  1.0, -1.0,  1.0,  1.0,  1.0, 0, 1, 0,
-    -1.0,  1.0, -1.0,  1.0,  1.0,  1.0, 0, 1, 0,
+    -1.0,  1.0,  1.0,  1.0,  1.0,  1.0, 0,  1, 0, 0.5f, 0.66f,
+     1.0,  1.0,  1.0,  1.0,  1.0,  1.0, 0,  1, 0, 1.0f, 0.66f,
+     1.0,  1.0, -1.0,  1.0,  1.0,  1.0, 0,  1, 0, 1.0f, 1.00f,
+    -1.0,  1.0, -1.0,  1.0,  1.0,  1.0, 0,  1, 0, 0.5f, 1.00f,
 
     // bottom face
-    -1.0, -1.0,  1.0,  1.0,  0.8,  0.0, 0, -1, 0,
-     1.0, -1.0,  1.0,  1.0,  0.8,  0.0, 0, -1, 0,
-     1.0, -1.0, -1.0,  1.0,  0.8,  0.0, 0, -1, 0,
-    -1.0, -1.0, -1.0,  1.0,  0.8,  0.0, 0, -1, 0
+    -1.0, -1.0, -1.0,  1.0,  0.8,  0.0, 0, -1, 0, 0.0f, 1.00f,
+     1.0, -1.0, -1.0,  1.0,  0.8,  0.0, 0, -1, 0, 0.5f, 1.00f,
+     1.0, -1.0,  1.0,  1.0,  0.8,  0.0, 0, -1, 0, 0.5f, 0.66f,
+    -1.0, -1.0,  1.0,  1.0,  0.8,  0.0, 0, -1, 0, 0.0f, 0.66f
 ];
 
 const GLuint[36] indices = [
@@ -66,23 +66,23 @@ const GLuint[36] indices = [
 
     // right
     4, 5, 6,
-    6, 4, 7,
+    4, 6, 7,
 
     // back
     8, 9, 10,
-    10, 8 , 11,
+    8, 10, 11,
 
     // left
     12, 13, 14,
-    14, 12, 15,
+    12, 14, 15,
 
     // top
     16, 17, 18,
-    18, 16, 19,
+    16, 18, 19,
 
     // bottom
     20, 21, 22,
-    22, 20, 23
+    20, 22, 23
 ];
 
 struct Cube
@@ -93,9 +93,10 @@ struct Cube
 
         GLuint indexBufferObject;;
 
-        GLuint positionAttribute = 0;
-        GLuint colorAttribute = 1;
-        GLuint normalAttribute = 2;
+        GLuint positionAttribute    = 0;
+        GLuint colorAttribute       = 1;
+        GLuint normalAttribute      = 2;
+        GLuint texAttribute         = 3;
 
     public:
         Shader shader;
@@ -124,13 +125,16 @@ struct Cube
             glBufferData(GL_ARRAY_BUFFER, vertices.sizeof, vertices.ptr, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(positionAttribute);
-            glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*9), cast(GLvoid*)0);
+            glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*11), cast(GLvoid*)0);
 
             glEnableVertexAttribArray(colorAttribute);
-            glVertexAttribPointer(colorAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*9), cast(GLvoid*)(GLfloat.sizeof*3));
+            glVertexAttribPointer(colorAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*11), cast(GLvoid*)(GLfloat.sizeof*3));
 
             glEnableVertexAttribArray(normalAttribute);
-            glVertexAttribPointer(normalAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*9), cast(GLvoid*)(GLfloat.sizeof*6));
+            glVertexAttribPointer(normalAttribute, 3, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*11), cast(GLvoid*)(GLfloat.sizeof*6));
+
+            glEnableVertexAttribArray(texAttribute);
+            glVertexAttribPointer(texAttribute, 2, GL_FLOAT, GL_FALSE, cast(GLint)(GLfloat.sizeof*11), cast(GLvoid*)(GLfloat.sizeof*9));
 
             glGenBuffers(1, &indexBufferObject);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
