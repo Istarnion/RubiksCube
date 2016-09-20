@@ -1,4 +1,4 @@
-name "exercise-4"
+name "rubiks"
 description "Fourth exercise in OpenGL, using a modern aproach to creating a rubiks cube"
 authors "Hallgeir"
 copyright "Copyright © 2016, Hallgeir Løkken"
